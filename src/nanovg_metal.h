@@ -1119,7 +1119,12 @@ error:
             [_reusableBufferPool removeObjectAtIndex:reuseIndex];
         } else {
             buffer = [_device newBufferWithLength:length options:MTLResourceStorageModeShared];
-            NSLog(@"Allocated buffer of length %d", (int)length);
+            if (_reusableBufferPool.count > 6) {
+                // Remove older recycled buffers that didn't match this request, to
+                // keep overall memory use low. This isn't a great heuristic, but it
+                // works fine for demonstration purposes.
+                [_reusableBufferPool removeAllObjects];
+            }
         }
     }
     return buffer;

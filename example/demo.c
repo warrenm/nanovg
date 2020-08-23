@@ -1130,7 +1130,7 @@ void renderDemo(NVGcontext* vg, float mx, float my, float width, float height,
 
 static int mini(int a, int b) { return a < b ? a : b; }
 
-static void unpremultiplyAlpha(unsigned char* image, int w, int h, int stride)
+void unpremultiplyAlpha(unsigned char* image, int w, int h, int stride)
 {
 	int x,y;
 
@@ -1189,7 +1189,7 @@ static void unpremultiplyAlpha(unsigned char* image, int w, int h, int stride)
 	}
 }
 
-static void setAlpha(unsigned char* image, int w, int h, int stride, unsigned char a)
+void setAlpha(unsigned char* image, int w, int h, int stride, unsigned char a)
 {
 	int x, y;
 	for (y = 0; y < h; y++) {
@@ -1199,7 +1199,7 @@ static void setAlpha(unsigned char* image, int w, int h, int stride, unsigned ch
 	}
 }
 
-static void flipHorizontal(unsigned char* image, int w, int h, int stride)
+void flipHorizontal(unsigned char* image, int w, int h, int stride)
 {
 	int i = 0, j = h-1, k;
 	while (i < j) {
@@ -1213,6 +1213,17 @@ static void flipHorizontal(unsigned char* image, int w, int h, int stride)
 		i++;
 		j--;
 	}
+}
+
+void swapBGRA(unsigned char *imageBytes, int width, int height, int stride) {
+    for (int r = 0; r < height; ++r) {
+        for (int c = 0; c < width; ++c) {
+            unsigned char *bgra = imageBytes + (r * stride) + (c * 4);
+            unsigned char tempB = bgra[0];
+            bgra[0] = bgra[2];
+            bgra[2] = tempB;
+        }
+    }    
 }
 
 void saveScreenShot(int w, int h, int premult, const char* name)

@@ -6,6 +6,7 @@
 #include "nanovg.h"
 #define NANOVG_METAL_IMPLEMENTATION
 #include "nanovg_metal.h"
+#include "stb_image_write.h"
 #include "demo.h"
 #include "perf.h"
 
@@ -15,6 +16,8 @@ enum {
     kVK_Space  = 0x31,
     kVK_Escape = 0x35
 };
+
+static void saveScreenshotMetal(id<MTLTexture> texture, int premult, const char *filename);
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 @end
@@ -114,12 +117,16 @@ enum {
 
     // Calculate point size to backing ratio
     float pxRatio = (float)fbWidth / (float)winWidth;
+    
+    view.framebufferOnly = !_screenshot;
 
     MTLRenderPassDescriptor *renderPass = view.currentRenderPassDescriptor;
     if (renderPass == nil) {
         return;
     }
     
+    id<MTLTexture> colorTexture = renderPass.colorAttachments[0].texture;
+
     if (_premult) {
         renderPass.colorAttachments[0].clearColor = MTLClearColorMake(0.0f, 0.0f, 0.0f, 0.0f);
     } else {
@@ -165,11 +172,36 @@ enum {
     if (_screenshot) {
         _screenshot = 0;
         [commandBuffer waitUntilCompleted];
-        saveScreenShot(fbWidth, fbHeight, _premult, "dump.png");
+        saveScreenshotMetal(colorTexture, _premult, "dump.png");
     }
 }
 
 @end
+
+static void saveScreenshotMetal(id<MTLTexture> texture, int premult, const char *filename)
+{
+    int width = (int)texture.width;
+    int height = (int)texture.height;
+    int bytesPerRow = width * 4;
+    unsigned char *imageBytes = (unsigned char*)malloc(bytesPerRow * height);
+    if (imageBytes == NULL) {
+        return;
+    }
+    
+    MTLRegion region = MTLRegionMake2D(0, 0, width, height);
+    [texture getBytes:imageBytes bytesPerRow:bytesPerRow fromRegion:region mipmapLevel:0];
+
+    if (premult) {
+        unpremultiplyAlpha(imageBytes, width, height, bytesPerRow);
+    } else {
+        setAlpha(imageBytes, width, height, bytesPerRow, 255);
+    }
+    swapBGRA(imageBytes, width, height, bytesPerRow);
+    stbi_write_png(filename, width, height, 4, imageBytes, bytesPerRow);
+    
+    free(imageBytes);
+}
+
 
 int main(int argc, const char * argv[]) {
     return NSApplicationMain(argc, argv);

@@ -19,6 +19,12 @@ void renderDemo(NVGcontext* vg, float mx, float my, float width, float height, f
 
 void saveScreenShot(int w, int h, int premult, const char* name);
 
+// Image utilities
+void unpremultiplyAlpha(unsigned char* image, int w, int h, int stride);
+void setAlpha(unsigned char* image, int w, int h, int stride, unsigned char a);
+void flipHorizontal(unsigned char* image, int w, int h, int stride);
+void swapBGRA(unsigned char *imageBytes, int width, int height, int stride);
+
 #ifdef __cplusplus
 }
 #endif
