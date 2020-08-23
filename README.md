@@ -1,37 +1,35 @@
-*This project is not actively maintained.*
+**Fair warning: This project is a hard fork of the original NanoVG. It does not contribute upstream, it is not cross-platform, and it has no vestiges of the OpenGL API. Do not use this project unless you are only interested in a high-performance vector graphics rendering library for Metal on Apple platforms only.**
 
 NanoVG
 ==========
 
-NanoVG is small antialiased vector graphics rendering library for OpenGL. It has lean API modeled after HTML5 canvas API. It is aimed to be a practical and fun toolset for building scalable user interfaces and visualizations.
+NanoVG is small antialiased vector graphics rendering library ~for OpenGL~. It has lean API modeled after HTML5 canvas API. It is aimed to be a practical and fun toolset for building scalable user interfaces and visualizations.
 
 ## Screenshot
 
-![screenshot of some text rendered witht the sample program](/example/screenshot-01.png?raw=true)
+![screenshot of some text rendered with the sample program](/example/screenshot-01.png?raw=true)
 
 Usage
 =====
 
-The NanoVG API is modeled loosely on HTML5 canvas API. If you know canvas, you're up to speed with NanoVG in no time.
+The NanoVG API is modeled loosely on HTML5 canvas API. If you know canvas, you'll be up to speed with NanoVG in no time.
 
 ## Creating drawing context
 
-The drawing context is created using platform specific constructor function. If you're using the OpenGL 2.0 back-end the context is created as follows:
+The drawing context is created using a platform-specific constructor function. If you're using the Metal backend, the context is created as follows:
 ```C
-#define NANOVG_GL2_IMPLEMENTATION	// Use GL2 implementation.
-#include "nanovg_gl.h"
+#define NANOVG_METAL_IMPLEMENTATION	// Use Metal implementation.
+#include "nanovg_metal.h"
 ...
-struct NVGcontext* vg = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+struct NVGcontext* vg = _vg = nvgCreateMetal(mtlDevice, mtlCommandQueue, NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);;
 ```
 
-The first parameter defines flags for creating the renderer.
+The last parameter defines flags for creating the renderer.
 
 - `NVG_ANTIALIAS` means that the renderer adjusts the geometry to include anti-aliasing. If you're using MSAA, you can omit this flags. 
 - `NVG_STENCIL_STROKES` means that the render uses better quality rendering for (overlapping) strokes. The quality is mostly visible on wider strokes. If you want speed, you can omit this flag.
 
-Currently there is an OpenGL back-end for NanoVG: [nanovg_gl.h](/src/nanovg_gl.h) for OpenGL 2.0, OpenGL ES 2.0, OpenGL 3.2 core profile and OpenGL ES 3. The implementation can be chosen using a define as in above example. See the header file and examples for further info. 
-
-*NOTE:* The render target you're rendering to must have stencil buffer.
+*NOTE:* The frame buffer you render to must have exactly one color attachment (of format `MTLPixelFormatBGRA8Unorm`) and a stencil attachment of format `MTLPixelFormatStencil8`.
 
 ## Drawing shapes with NanoVG
 
@@ -62,39 +60,11 @@ nvgFill(vg);
 ## Rendering is wrong, what to do?
 
 - make sure you have created NanoVG context using one of the `nvgCreatexxx()` calls
-- make sure you have initialised OpenGL with *stencil buffer*
-- make sure you have cleared stencil buffer
+- make sure you have initialized your Metal view with a *stencil buffer*
+- make sure you have cleared the stencil buffer
+- make sure you precede your `nvgBeginFrame()` call with a call to `nvgBeginFrameMetal(...)` to provide your per-frame rendering objects (command buffer and render command encoder).
 - make sure all rendering calls happen between `nvgBeginFrame()` and `nvgEndFrame()`
-- to enable more checks for OpenGL errors, add `NVG_DEBUG` flag to `nvgCreatexxx()`
 - if the problem still persists, please report an issue!
-
-## OpenGL state touched by the backend
-
-The OpenGL back-end touches following states:
-
-When textures are uploaded or updated, the following pixel store is set to defaults: `GL_UNPACK_ALIGNMENT`, `GL_UNPACK_ROW_LENGTH`, `GL_UNPACK_SKIP_PIXELS`, `GL_UNPACK_SKIP_ROWS`. Texture binding is also affected. Texture updates can happen when the user loads images, or when new font glyphs are added. Glyphs are added as needed between calls to  `nvgBeginFrame()` and `nvgEndFrame()`.
-
-The data for the whole frame is buffered and flushed in `nvgEndFrame()`. The following code illustrates the OpenGL state touched by the rendering code:
-```C
-	glUseProgram(prog);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
-	glEnable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_SCISSOR_TEST);
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glStencilMask(0xffffffff);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-	glStencilFunc(GL_ALWAYS, 0, 0xffffffff);
-	glActiveTexture(GL_TEXTURE0);
-	glBindBuffer(GL_UNIFORM_BUFFER, buf);
-	glBindVertexArray(arr);
-	glBindBuffer(GL_ARRAY_BUFFER, buf);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glUniformBlockBinding(... , GLNVG_FRAG_BINDING);
-```
 
 ## API Reference
 
@@ -103,7 +73,7 @@ See the header file [nanovg.h](/src/nanovg.h) for API reference.
 ## Ports
 
 - [DX11 port](https://github.com/cmaughan/nanovg) by [Chris Maughan](https://github.com/cmaughan)
-- [Metal port](https://github.com/ollix/MetalNanoVG) by [Olli Wang](https://github.com/olliwang)
+- An earlier [Metal port](https://github.com/ollix/MetalNanoVG) by [Olli Wang](https://github.com/olliwang)
 - [bgfx port](https://github.com/bkaradzic/bgfx/tree/master/examples/20-nanovg) by [Branimir Karadžić](https://github.com/bkaradzic)
 
 ## Projects using NanoVG

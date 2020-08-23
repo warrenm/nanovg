@@ -308,7 +308,9 @@ NVGcontext* nvgCreateInternal(NVGparams* params)
 
 	nvg__setDevicePixelRatio(ctx, 1.0f);
 
-	if (ctx->params.renderCreate(ctx->params.userPtr) == 0) goto error;
+    if (ctx->params.renderCreate(ctx->params.userPtr) == 0) {
+        goto error;
+    }
 
 	// Init font rendering
 	memset(&fontParams, 0, sizeof(fontParams));

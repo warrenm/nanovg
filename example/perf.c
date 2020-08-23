@@ -5,7 +5,9 @@
 #ifdef NANOVG_GLEW
 #  include <GL/glew.h>
 #endif
-#include <GLFW/glfw3.h>
+#ifndef NANOVG_NO_GLEW
+#  include <GLFW/glfw3.h>
+#endif
 #include "nanovg.h"
 
 #ifdef _MSC_VER
@@ -43,7 +45,9 @@ void startGPUTimer(GPUtimer* timer)
 {
 	if (!timer->supported)
 		return;
+#ifndef NANOVG_NO_GL
 	glBeginQuery(GL_TIME_ELAPSED, timer->queries[timer->cur % GPU_QUERY_COUNT] );
+#endif
 	timer->cur++;
 }
 
@@ -51,25 +55,27 @@ int stopGPUTimer(GPUtimer* timer, float* times, int maxTimes)
 {
 	NVG_NOTUSED(times);
 	NVG_NOTUSED(maxTimes);
-	GLint available = 1;
 	int n = 0;
 	if (!timer->supported)
 		return 0;
 
+#ifndef NANOVG_NO_GL
+    GLint available = 1;
 	glEndQuery(GL_TIME_ELAPSED);
 	while (available && timer->ret <= timer->cur) {
 		// check for results if there are any
 		glGetQueryObjectiv(timer->queries[timer->ret % GPU_QUERY_COUNT], GL_QUERY_RESULT_AVAILABLE, &available);
 		if (available) {
-/*			GLuint64 timeElapsed = 0;
+			GLuint64 timeElapsed = 0;
 			glGetQueryObjectui64v(timer->queries[timer->ret % GPU_QUERY_COUNT], GL_QUERY_RESULT, &timeElapsed);
 			timer->ret++;
 			if (n < maxTimes) {
 				times[n] = (float)((double)timeElapsed * 1e-9);
 				n++;
-			}*/
+			}
 		}
 	}
+#endif
 	return n;
 }
 

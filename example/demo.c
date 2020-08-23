@@ -5,7 +5,9 @@
 #ifdef NANOVG_GLEW
 #  include <GL/glew.h>
 #endif
-#include <GLFW/glfw3.h>
+#ifndef NANOVG_NO_GLEW
+#  include <GLFW/glfw3.h>
+#endif
 #include "nanovg.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -869,9 +871,10 @@ void drawParagraph(NVGcontext* vg, float x, float y, float width, float height, 
 	float bounds[4];
 	float a;
 	const char* hoverText = "Hover your mouse over the text to see calculated caret position.";
-	float gx,gy;
+    float gx = 0.0,gy = 0.0;
 	int gutter = 0;
 	const char* boxText = "Testing\nsome multiline\ntext.";
+    NVG_NOTUSED(boxText);
 	NVG_NOTUSED(height);
 
 	nvgSave(vg);
@@ -933,7 +936,7 @@ void drawParagraph(NVGcontext* vg, float x, float y, float width, float height, 
 		nvgFontSize(vg, 12.0f);
 		nvgTextAlign(vg, NVG_ALIGN_RIGHT|NVG_ALIGN_MIDDLE);
 
-		nvgTextBounds(vg, gx,gy, txt, NULL, bounds);
+		nvgTextBounds(vg, gx, gy, txt, NULL, bounds);
 
 		nvgBeginPath(vg);
 		nvgFillColor(vg, nvgRGBA(255,192,0,255));
@@ -1217,7 +1220,9 @@ void saveScreenShot(int w, int h, int premult, const char* name)
 	unsigned char* image = (unsigned char*)malloc(w*h*4);
 	if (image == NULL)
 		return;
+#ifndef NANOVG_NO_GL
 	glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, image);
+#endif
 	if (premult)
 		unpremultiplyAlpha(image, w, h, w*4);
 	else

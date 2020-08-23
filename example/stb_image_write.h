@@ -102,7 +102,7 @@ static void writefv(FILE *f, const char *fmt, va_list v)
 static void write3(FILE *f, unsigned char a, unsigned char b, unsigned char c)
 {
    unsigned char arr[3];
-   arr[0] = a, arr[1] = b, arr[2] = c;
+   arr[0] = a; arr[1] = b; arr[2] = c;
    fwrite(arr, 3, 1, f);
 }
 
@@ -115,10 +115,11 @@ static void write_pixels(FILE *f, int rgb_dir, int vdir, int x, int y, int comp,
    if (y <= 0)
       return;
 
-   if (vdir < 0) 
-      j_end = -1, j = y-1;
-   else
-      j_end =  y, j = 0;
+   if (vdir < 0) {
+      j_end = -1; j = y-1;
+   } else {
+      j_end =  y; j = 0;
+   }
 
    for (; j != j_end; j += vdir) {
       for (i=0; i < x; ++i) {
@@ -291,7 +292,7 @@ unsigned char * stbi_zlib_compress(unsigned char *data, int data_len, int *out_l
       for (j=0; j < n; ++j) {
          if (hlist[j]-data > i-32768) { // if entry lies within window
             int d = stbi__zlib_countm(hlist[j], data+i, data_len-i);
-            if (d >= best) best=d,bestloc=hlist[j];
+            if (d >= best) { best=d; bestloc=hlist[j]; }
          }
       }
       // when hash table entry is too long, delete half the entries
@@ -318,7 +319,7 @@ unsigned char * stbi_zlib_compress(unsigned char *data, int data_len, int *out_l
       }
 
       if (bestloc) {
-         int d = data+i - bestloc; // distance back
+         int d = (int)(data + i - bestloc); // distance back
          assert(d <= 32767 && best <= 258);
          for (j=0; best > lengthc[j+1]-1; ++j);
          stbi__zlib_huff(j+257);
@@ -348,8 +349,8 @@ unsigned char * stbi_zlib_compress(unsigned char *data, int data_len, int *out_l
       unsigned int i=0, s1=1, s2=0, blocklen = data_len % 5552;
       int j=0;
       while (j < data_len) {
-         for (i=0; i < blocklen; ++i) s1 += data[j+i], s2 += s1;
-         s1 %= 65521, s2 %= 65521;
+         for (i=0; i < blocklen; ++i) { s1 += data[j+i]; s2 += s1; }
+         s1 %= 65521; s2 %= 65521;
          j += blocklen;
          blocklen = 5552;
       }
