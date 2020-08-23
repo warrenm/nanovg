@@ -21,7 +21,7 @@ The drawing context is created using a platform-specific constructor function. I
 #define NANOVG_METAL_IMPLEMENTATION	// Use Metal implementation.
 #include "nanovg_metal.h"
 ...
-struct NVGcontext* vg = _vg = nvgCreateMetal(mtlDevice, mtlCommandQueue, NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);;
+struct NVGcontext* vg = nvgCreateMetal(mtlDevice, mtlCommandQueue, NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 ```
 
 The last parameter defines flags for creating the renderer.
